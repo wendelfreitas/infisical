@@ -23,6 +23,7 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
       }),
       response: {
         201: z.object({
+          id: z.string().trim(),
           orgId: z.string().trim()
         })
       }
@@ -34,7 +35,7 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
 
       const { consumerSecret } = server.services;
 
-      await consumerSecret.createConsumerSecret({
+      const secret = await consumerSecret.createConsumerSecret({
         type,
         name,
         key,
@@ -50,6 +51,7 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
       });
 
       return {
+        id: secret.id,
         orgId
       };
     }

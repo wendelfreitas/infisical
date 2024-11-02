@@ -1,63 +1,105 @@
-import { Fragment } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { createNotification } from "@app/components/notifications";
 import { Button, FormControl, Input } from "@app/components/v2";
-import { ConsumerSecretType } from "@app/const";
+import { consumerSecretsTypes, ConsumerSecretType } from "@app/const";
+import { useCreateConsumerSecret } from "@app/hooks/api/consumerSecrets/mutations";
+import { UsePopUpState } from "@app/hooks/usePopUp";
+import { queryClient } from "@app/reactQuery";
 
-const baseSchema = z.object({
-  type: z.enum(["web-login", "secure-content"]),
-  name: z.string()
+const webLoginSchema = z.object({
+  type: z.literal("web-login"),
+  name: z.string().optional(),
+  username: z.string({ required_error: "Username is required" }).min(3),
+  password: z.string({ required_error: "Password is required" })
 });
 
-const dynamicSchema = baseSchema.and(
-  z.union([
-    z.object({
-      type: z.literal("web-login"),
-      username: z.string({ required_error: "Username is required" }),
-      password: z.string({ required_error: "Password is required" })
-    }),
-    z.object({
-      type: z.literal("secure-content"),
-      content: z.string({ required_error: "Content is required" })
-    })
-  ])
-);
+const creditCardSchema = z.object({
+  type: z.literal("credit-card"),
+  name: z.string().optional()
+});
 
-export type FormData = z.infer<typeof dynamicSchema>;
+const secureNoteSchema = z.object({
+  type: z.literal("secure-note"),
+  name: z.string().optional(),
+  content: z.string({ required_error: "Content is required" })
+});
 
 type Props = {
   type: ConsumerSecretType;
-  isPublic: boolean; // whether or not this is a public (non-authenticated) secret sharing form
-  value?: string;
+  popUp: UsePopUpState<["createConsumerSecret"]>;
+  handlePopUpToggle: (
+    popUpName: keyof UsePopUpState<["createConsumerSecret"]>,
+    state?: boolean
+  ) => void;
 };
 
-export const ConsumerSecretForm = ({ type, value }: Props) => {
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting }
-  } = useForm<FormData>({
-    resolver: zodResolver(dynamicSchema),
-    defaultValues: {
-      type: "secure-content"
+const getSchema = (type: string) => {
+  switch (type) {
+    case consumerSecretsTypes.webLogin:
+      return webLoginSchema;
+
+    case consumerSecretsTypes.creditCard:
+      return creditCardSchema;
+
+    case consumerSecretsTypes.secureNote:
+      return secureNoteSchema;
+
+    default:
+      return webLoginSchema;
+  }
+};
+
+export const ConsumerSecretForm = ({ type, handlePopUpToggle }: Props) => {
+  const { mutateAsync: createConsumerSecret } = useCreateConsumerSecret({
+    options: {
+      onSuccess({ orgId }) {
+        queryClient.refetchQueries(["consumer-secrets", orgId, type]);
+        handlePopUpToggle("createConsumerSecret", false);
+      }
     }
   });
 
-  const onFormSubmit = async (data: FormData) => {
+  const schema = getSchema(type);
+
+  const {
+    control,
+    handleSubmit,
+
+    formState: { isSubmitting, errors }
+  } = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      type
+    }
+  });
+
+  console.log(errors);
+
+  const notification: {
+    [key: string]: {
+      title: string;
+      error: string;
+    };
+  } = {
+    [consumerSecretsTypes.webLogin]: {
+      title: "Web Credentials created successfully",
+      error: "Failed to create Web Credential"
+    }
+  };
+
+  const onFormSubmit = async (data: z.infer<typeof schema>) => {
     try {
-      if (data.type === "secure-content") {
-        createNotification({
-          text: "Shared secret link copied to clipboard.",
-          type: "success"
-        });
-      }
-    } catch (error) {
-      console.error(error);
+      await createConsumerSecret(data);
       createNotification({
-        text: "Failed to create a shared secret.",
+        text: notification[type].title,
+        type: "success"
+      });
+    } catch (error) {
+      createNotification({
+        text: notification[type].error,
         type: "error"
       });
     }
@@ -66,7 +108,7 @@ export const ConsumerSecretForm = ({ type, value }: Props) => {
   const dynamicFields: {
     [key: string]: React.ReactNode;
   } = {
-    "web-login": (
+    [consumerSecretsTypes.webLogin]: (
       <>
         <Controller
           control={control}
@@ -82,14 +124,19 @@ export const ConsumerSecretForm = ({ type, value }: Props) => {
           control={control}
           name="password"
           render={({ field, fieldState: { error } }) => (
-            <FormControl label="Password" isError={Boolean(error)} errorText={error?.message}>
+            <FormControl
+              label="Password"
+              isError={Boolean(error)}
+              isRequired
+              errorText={error?.message}
+            >
               <Input {...field} placeholder="Password" type="password" />
             </FormControl>
           )}
         />
       </>
     ),
-    "secure-note": (
+    [consumerSecretsTypes.secureNote]: (
       <Controller
         control={control}
         name="content"
@@ -105,7 +152,6 @@ export const ConsumerSecretForm = ({ type, value }: Props) => {
               placeholder="Enter sensitive data to share."
               {...field}
               className="h-40 min-h-[70px] w-full rounded-md border border-mineshaft-600 bg-mineshaft-900 py-1.5 px-2 text-bunker-300 outline-none transition-all placeholder:text-mineshaft-400 hover:border-primary-400/30 focus:border-primary-400/50 group-hover:mr-2"
-              disabled={value !== undefined}
             />
           </FormControl>
         )}

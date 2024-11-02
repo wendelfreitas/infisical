@@ -1,5 +1,5 @@
 import { Modal, ModalContent } from "@app/components/v2";
-import { ConsumerSecretType } from "@app/const";
+import { consumerSecretsTypes, ConsumerSecretType } from "@app/const";
 import { UsePopUpState } from "@app/hooks/usePopUp";
 
 import { ConsumerSecretForm } from "../ConsumerSecretForm/ConsumerSecretForm";
@@ -15,9 +15,9 @@ type Props = {
 
 export const AddConsumerSecretModal = ({ type, popUp, handlePopUpToggle }: Props) => {
   const title = {
-    "web-login": "Web login",
-    "credit-card": "Credit Card",
-    "secure-note": "Secure Note"
+    [consumerSecretsTypes.webLogin]: "Web login",
+    [consumerSecretsTypes.creditCard]: "Credit Card",
+    [consumerSecretsTypes.secureNote]: "Secure Note"
   };
 
   return (
@@ -33,8 +33,9 @@ export const AddConsumerSecretModal = ({ type, popUp, handlePopUpToggle }: Props
       >
         <ConsumerSecretForm
           type={type}
-          isPublic={false}
-          value={(popUp.createConsumerSecret.data as { value?: string })?.value}
+          popUp={popUp}
+          handlePopUpToggle={handlePopUpToggle}
+          //   value={(popUp.createConsumerSecret.data as { value?: string })?.value}
         />
       </ModalContent>
     </Modal>

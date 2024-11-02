@@ -16,13 +16,24 @@ import {
   Tooltip,
   Tr
 } from "@app/components/v2";
-import { consumerSecretsTypes } from "@app/const";
+import { consumerSecretsTypes, ConsumerSecretType } from "@app/const";
 import { useOrganization } from "@app/context";
 import { useGetConsumerSecretsByOrgId } from "@app/hooks/api/consumerSecrets/queries";
 import { ConsumerSecretSecretWebLogin } from "@app/hooks/api/consumerSecrets/types";
+import { UsePopUpState } from "@app/hooks/usePopUp";
 import { handleCopySecretToClipboard } from "@app/views/UserSecretsPage/utils/helpers/copy-secret-to-clipboard";
 
-export const WebLoginTable = () => {
+type WebLoginTableProps = {
+  handlePopUpOpen: (
+    popUpName: keyof UsePopUpState<["removeConsumerSecret"]>,
+    data?: {
+      id: string;
+      type: ConsumerSecretType;
+    }
+  ) => void;
+};
+
+export const WebLoginTable = ({ handlePopUpOpen }: WebLoginTableProps) => {
   const { currentOrg } = useOrganization();
   const orgId = currentOrg?.id || "";
 
@@ -103,10 +114,10 @@ export const WebLoginTable = () => {
                         <IconButton
                           onClick={(e) => {
                             e.stopPropagation();
-                            // handlePopUpOpen("deleteSharedSecretConfirmation", {
-                            //   name: "delete",
-                            //   id: row.id
-                            // });
+                            handlePopUpOpen("removeConsumerSecret", {
+                              type: consumerSecretsTypes.webLogin,
+                              id: secret.id
+                            });
                           }}
                           variant="plain"
                           ariaLabel="delete"

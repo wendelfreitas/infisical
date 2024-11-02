@@ -59,6 +59,9 @@ import {
   TCertificateTemplates,
   TCertificateTemplatesInsert,
   TCertificateTemplatesUpdate,
+  TConsumerSecrets,
+  TConsumerSecretsInsert,
+  TConsumerSecretsUpdate,
   TDynamicSecretLeases,
   TDynamicSecretLeasesInsert,
   TDynamicSecretLeasesUpdate,
@@ -817,6 +820,12 @@ declare module "knex/types/tables" {
       TExternalGroupOrgRoleMappings,
       TExternalGroupOrgRoleMappingsInsert,
       TExternalGroupOrgRoleMappingsUpdate
+    >;
+
+    [TableName.ConsumerSecret]: KnexOriginal.CompositeTableType<
+      TConsumerSecrets,
+      TConsumerSecretsInsert,
+      TConsumerSecretsUpdate
     >;
   }
 }

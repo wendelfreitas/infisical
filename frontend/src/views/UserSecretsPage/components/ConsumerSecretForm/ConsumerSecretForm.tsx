@@ -18,7 +18,33 @@ const webLoginSchema = z.object({
 
 const creditCardSchema = z.object({
   type: z.literal("credit-card"),
-  name: z.string().optional()
+  name: z.string().optional(),
+  cardNumber: z.coerce
+    .number({
+      invalid_type_error: "Expected only numbers"
+    })
+    .refine(
+      (value) => String(value).length >= 13 && String(value).length <= 16,
+      "Credit card number must be 13 to 16 digits long"
+    ),
+  expiryDate: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Invalid date format. Expected mm/yy.")
+    .refine((date) => {
+      const [month, year] = date.split("/").map(Number);
+      const currentYear = new Date().getFullYear() % 100;
+      const currentMonth = new Date().getMonth() + 1;
+
+      return year > currentYear || (year === currentYear && month >= currentMonth);
+    }, "Expiry date must be in the future."),
+  cvv: z.coerce
+    .number({
+      invalid_type_error: "Expected only numbers"
+    })
+    .refine(
+      (value) => String(value).length >= 3 && String(value).length <= 4,
+      "CVV must be 3 to 4 digits long"
+    )
 });
 
 const secureNoteSchema = z.object({
@@ -87,6 +113,14 @@ export const ConsumerSecretForm = ({ type, handlePopUpToggle }: Props) => {
     [consumerSecretsTypes.webLogin]: {
       title: "Web Credentials created successfully",
       error: "Failed to create Web Credential"
+    },
+    [consumerSecretsTypes.creditCard]: {
+      title: "Credit Card created successfully",
+      error: "Failed to create Credit Card"
+    },
+    [consumerSecretsTypes.secureNote]: {
+      title: "Secure Note created successfully",
+      error: "Failed to create Secure Note"
     }
   };
 
@@ -134,6 +168,57 @@ export const ConsumerSecretForm = ({ type, handlePopUpToggle }: Props) => {
             </FormControl>
           )}
         />
+      </>
+    ),
+    [consumerSecretsTypes.creditCard]: (
+      <>
+        <Controller
+          control={control}
+          name="cardNumber"
+          render={({ field, fieldState: { error } }) => (
+            <FormControl
+              label="Card Number"
+              isError={Boolean(error)}
+              errorText={error?.message}
+              isRequired
+            >
+              <Input {...field} placeholder="5610 5910 8101 8250" min={13} max={16} />
+            </FormControl>
+          )}
+        />
+
+        <div className="grid grid-cols-12 justify-between gap-x-5">
+          <Controller
+            control={control}
+            name="expiryDate"
+            render={({ field, fieldState: { error } }) => (
+              <FormControl
+                label="Expiry Date"
+                isError={Boolean(error)}
+                isRequired
+                className="col-span-7"
+                errorText={error?.message}
+              >
+                <Input {...field} placeholder="mm/yy" type="text" />
+              </FormControl>
+            )}
+          />
+          <Controller
+            control={control}
+            name="cvv"
+            render={({ field, fieldState: { error } }) => (
+              <FormControl
+                label="CVV"
+                isError={Boolean(error)}
+                className="col-span-5"
+                isRequired
+                errorText={error?.message}
+              >
+                <Input {...field} placeholder="CVV" type="text" />
+              </FormControl>
+            )}
+          />
+        </div>
       </>
     ),
     [consumerSecretsTypes.secureNote]: (

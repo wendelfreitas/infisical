@@ -21,24 +21,26 @@ export const useGetConsumerSecretsByOrgId = ({ type, orgId, options }: UseGetCon
 
       const secrets = data || [];
 
-      return secrets.map((secret) => {
-        const fields = JSON.parse(
-          decryptSymmetric({
-            ciphertext: secret.fields,
-            iv: secret.iv,
-            key: secret.key,
-            tag: secret.tag
-          })
-        );
+      return secrets
+        .filter((secret) => secret.type === type)
+        .map((secret) => {
+          const fields = JSON.parse(
+            decryptSymmetric({
+              ciphertext: secret.fields,
+              iv: secret.iv,
+              key: secret.key,
+              tag: secret.tag
+            })
+          );
 
-        return {
-          id: secret.id,
-          name: secret.name,
-          ...fields,
-          createdAt: secret.createdAt,
-          updatedAt: secret.updatedAt
-        };
-      });
+          return {
+            id: secret.id,
+            name: secret.name,
+            ...fields,
+            createdAt: secret.createdAt,
+            updatedAt: secret.updatedAt
+          };
+        });
     },
     ...options
   });

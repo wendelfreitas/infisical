@@ -6,9 +6,9 @@ import { consumerSecretsTypes } from "@app/const";
 import { usePopUp } from "@app/hooks/usePopUp";
 
 import { AddConsumerSecretModal } from "../../../AddConsumerSecretModal/AddConsumerSecretModal";
-import { WebLoginTable } from "./WebLoginTable";
+import { CreditCardTable } from "./CreditCardTable";
 
-export const WebLoginSection = () => {
+export const CreditCardSection = () => {
   const { popUp, handlePopUpOpen, handlePopUpToggle } = usePopUp(["createConsumerSecret"] as const);
 
   const handleAddMemberModal = () => {
@@ -18,7 +18,7 @@ export const WebLoginSection = () => {
   return (
     <div className="mb-6 rounded-lg border border-mineshaft-600 bg-mineshaft-900 p-4">
       <div className="mb-4 flex justify-between">
-        <p className="text-xl font-semibold text-mineshaft-100">Web Login Credentials</p>
+        <p className="text-xl font-semibold text-mineshaft-100">Credit Cards</p>
 
         <Button
           colorSchema="primary"
@@ -26,12 +26,12 @@ export const WebLoginSection = () => {
           leftIcon={<FontAwesomeIcon icon={faPlus} />}
           onClick={() => handleAddMemberModal()}
         >
-          Add Web Login
+          Add Credit Card
         </Button>
       </div>
-      <WebLoginTable />
+      <CreditCardTable />
       <AddConsumerSecretModal
-        type={consumerSecretsTypes.webLogin}
+        type={consumerSecretsTypes.creditCard}
         popUp={popUp}
         handlePopUpToggle={handlePopUpToggle}
       />

@@ -6,6 +6,8 @@ import { OrgPermissionActions, OrgPermissionSubjects } from "@app/context";
 import { withPermission } from "@app/hoc";
 import { isTabSection } from "@app/views/Org/Types";
 
+import { CreditCardTab } from "./components/CreditCardTab";
+import { SecureNoteTab } from "./components/SecureNoteTab";
 import { WebLoginTab } from "./components";
 
 const TAB_SECTIONS = {
@@ -66,12 +68,12 @@ export const UserSecretsPage = withPermission(
             <TabPanel value={TAB_SECTIONS.WEB_LOGIN}>
               <WebLoginTab />
             </TabPanel>
-            {/* <TabPanel value={TAB_SECTIONS.CREDIT_CARD}>
-              <OrgIdentityTab />
+            <TabPanel value={TAB_SECTIONS.CREDIT_CARD}>
+              <CreditCardTab />
             </TabPanel>
             <TabPanel value={TAB_SECTIONS.SECURE_NOTE}>
-              <OrgRoleTabSection />
-            </TabPanel> */}
+              <SecureNoteTab />
+            </TabPanel>
           </Tabs>
         </div>
       </div>

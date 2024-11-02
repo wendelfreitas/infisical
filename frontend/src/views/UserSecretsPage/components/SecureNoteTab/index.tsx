@@ -1,0 +1,1 @@
+export { SecureNoteTab } from "./SecureNoteTab";

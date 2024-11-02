@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
   EmptyState,
+  IconButton,
   Input,
   Table,
   TableContainer,
@@ -12,12 +13,14 @@ import {
   Td,
   Th,
   THead,
+  Tooltip,
   Tr
 } from "@app/components/v2";
 import { consumerSecretsTypes } from "@app/const";
 import { useOrganization } from "@app/context";
 import { useGetConsumerSecretsByOrgId } from "@app/hooks/api/consumerSecrets/queries";
 import { ConsumerSecretSecretSecureNote } from "@app/hooks/api/consumerSecrets/types";
+import { handleCopySecretToClipboard } from "@app/views/UserSecretsPage/utils/helpers/copy-secret-to-clipboard";
 
 export const SecureNoteTable = () => {
   const { currentOrg } = useOrganization();
@@ -71,7 +74,19 @@ export const SecureNoteTable = () => {
                     className="h-10 w-full cursor-pointer transition-colors duration-100 hover:bg-mineshaft-700"
                   >
                     <Td>{secret.name || "-"}</Td>
-                    <Td className="max-w-xs truncate">{content}</Td>
+                    <Td className="max-w-xs truncate">
+                      <Tooltip content="Copy content">
+                        <IconButton
+                          ariaLabel="copy-value"
+                          onClick={() => handleCopySecretToClipboard(content)}
+                          variant="plain"
+                          className="mr-2 h-full"
+                        >
+                          <FontAwesomeIcon icon={faCopy} />
+                        </IconButton>
+                      </Tooltip>
+                      {content}
+                    </Td>
                   </Tr>
                 );
               })}

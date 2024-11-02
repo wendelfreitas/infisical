@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faMagnifyingGlass, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
   EmptyState,
+  IconButton,
   Input,
   Table,
   TableContainer,
@@ -12,12 +13,14 @@ import {
   Td,
   Th,
   THead,
+  Tooltip,
   Tr
 } from "@app/components/v2";
 import { consumerSecretsTypes } from "@app/const";
 import { useOrganization } from "@app/context";
 import { useGetConsumerSecretsByOrgId } from "@app/hooks/api/consumerSecrets/queries";
 import { ConsumerSecretSecretWebLogin } from "@app/hooks/api/consumerSecrets/types";
+import { handleCopySecretToClipboard } from "@app/views/UserSecretsPage/utils/helpers/copy-secret-to-clipboard";
 
 export const WebLoginTable = () => {
   const { currentOrg } = useOrganization();
@@ -55,21 +58,63 @@ export const WebLoginTable = () => {
               <Th>Name</Th>
               <Th>Username</Th>
               <Th>Password</Th>
+              <Th aria-label="button" className="w-5" />
             </Tr>
           </THead>
           <TBody>
             {isLoading && <TableSkeleton columns={5} innerKey="org-members" />}
             {!isLoading &&
               filteredSecrets?.map((secret) => {
-                const { username } = secret;
+                const { username, password } = secret;
                 return (
                   <Tr
                     key={`org-consumer-secret-${secret.id}`}
                     className="h-10 w-full cursor-pointer transition-colors duration-100 hover:bg-mineshaft-700"
                   >
                     <Td>{secret.name || "-"}</Td>
-                    <Td>{username}</Td>
-                    <Td>{"*".repeat(username.length)}</Td>
+                    <Td>
+                      {username}{" "}
+                      <Tooltip content="Copy username">
+                        <IconButton
+                          ariaLabel="copy-value"
+                          onClick={() => handleCopySecretToClipboard(username)}
+                          variant="plain"
+                          className="h-full"
+                        >
+                          <FontAwesomeIcon icon={faCopy} />
+                        </IconButton>
+                      </Tooltip>
+                    </Td>
+                    <Td>
+                      {"*".repeat(password.length)}{" "}
+                      <Tooltip content="Copy password">
+                        <IconButton
+                          ariaLabel="copy-value"
+                          onClick={() => handleCopySecretToClipboard(password)}
+                          variant="plain"
+                          className="h-full"
+                        >
+                          <FontAwesomeIcon icon={faCopy} />
+                        </IconButton>
+                      </Tooltip>
+                    </Td>
+                    <Td>
+                      <Tooltip content="Delete credentials">
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // handlePopUpOpen("deleteSharedSecretConfirmation", {
+                            //   name: "delete",
+                            //   id: row.id
+                            // });
+                          }}
+                          variant="plain"
+                          ariaLabel="delete"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </IconButton>
+                      </Tooltip>
+                    </Td>
                   </Tr>
                 );
               })}

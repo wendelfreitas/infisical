@@ -52,6 +52,14 @@ const plansProd: Mapping = {
   enterprise: "licence_key_required"
 };
 
+export type ConsumerSecretType = "web-login" | "credit-card" | "secure-note";
+
+export const consumerSecretsTypes = {
+  webLogin: "web-login",
+  creditCard: "credit-card",
+  secureNote: "secure-note"
+} as const;
+
 export const plans = plansProd || plansDev;
 
 export const leaveConfirmDefaultMessage =

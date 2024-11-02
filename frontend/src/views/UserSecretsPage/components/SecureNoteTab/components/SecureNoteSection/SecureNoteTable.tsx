@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { faCopy, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faMagnifyingGlass, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -61,6 +61,7 @@ export const SecureNoteTable = () => {
             <Tr>
               <Th>Title</Th>
               <Th>Content</Th>
+              <Th aria-label="button" className="w-10" />
             </Tr>
           </THead>
           <TBody>
@@ -74,7 +75,8 @@ export const SecureNoteTable = () => {
                     className="h-10 w-full cursor-pointer transition-colors duration-100 hover:bg-mineshaft-700"
                   >
                     <Td>{secret.name || "-"}</Td>
-                    <Td className="max-w-xs truncate">
+                    <Td className="max-w-xs truncate">{content}</Td>
+                    <Td className="flex">
                       <Tooltip content="Copy content">
                         <IconButton
                           ariaLabel="copy-value"
@@ -85,7 +87,21 @@ export const SecureNoteTable = () => {
                           <FontAwesomeIcon icon={faCopy} />
                         </IconButton>
                       </Tooltip>
-                      {content}
+                      <Tooltip content="Delete note">
+                        <IconButton
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            // handlePopUpOpen("deleteSharedSecretConfirmation", {
+                            //   name: "delete",
+                            //   id: row.id
+                            // });
+                          }}
+                          variant="plain"
+                          ariaLabel="delete"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </IconButton>
+                      </Tooltip>
                     </Td>
                   </Tr>
                 );

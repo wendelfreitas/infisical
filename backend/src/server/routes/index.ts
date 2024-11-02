@@ -1260,7 +1260,8 @@ export const registerRoutes = async (
 
   const consumerSecretDAL = consumerSecretDALFactory(db);
   const consumerSecretService = consumerSecretServiceFactory({
-    consumerSecretDAL
+    consumerSecretDAL,
+    permissionService
   });
 
   await superAdminService.initServerCfg();

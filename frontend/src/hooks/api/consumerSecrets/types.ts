@@ -34,3 +34,13 @@ export type ConsumerSecretSecretCreditCard = Omit<ConsumerSecret, "fields"> & {
   expiryDate: string;
   cvv: string;
 };
+
+export type ConsumerSecretDeleteResponse = {
+  id: string;
+  orgId: string;
+  type: ConsumerSecretType;
+};
+
+export type TDeleteConsumerSecretRequest = {
+  consumerSecretId: string;
+};

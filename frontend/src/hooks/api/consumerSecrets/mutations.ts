@@ -1,11 +1,15 @@
 import crypto from "crypto";
 
-import { MutationOptions, useMutation } from "@tanstack/react-query";
+import { MutationOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { encryptSymmetric } from "@app/components/utilities/cryptography/crypto";
 import { apiRequest } from "@app/config/request";
 
-import { TCreateConsumerSecretDTO } from "./types";
+import {
+  ConsumerSecretDeleteResponse,
+  TCreateConsumerSecretDTO,
+  TDeleteConsumerSecretRequest
+} from "./types";
 
 export const useCreateConsumerSecret = ({
   options
@@ -41,5 +45,22 @@ export const useCreateConsumerSecret = ({
     },
 
     ...options
+  });
+};
+
+export const useDeleteConsumerSecretById = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    ConsumerSecretDeleteResponse,
+    { message: string },
+    TDeleteConsumerSecretRequest
+  >({
+    mutationFn: async ({ consumerSecretId }: TDeleteConsumerSecretRequest) => {
+      const { data } = await apiRequest.delete<ConsumerSecretDeleteResponse>(
+        `/api/v1/consumer-secrets/${consumerSecretId}`
+      );
+      return data;
+    },
+    onSuccess: ({ orgId, type }) => queryClient.invalidateQueries(["consumer-secrets", orgId, type])
   });
 };

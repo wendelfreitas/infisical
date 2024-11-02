@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { faCopy, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faMagnifyingGlass, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -67,6 +67,7 @@ export const CreditCardTable = () => {
               <Th>Card Number</Th>
               <Th>Expiry Date</Th>
               <Th>CVV</Th>
+              <Th aria-label="button" className="w-5" />
             </Tr>
           </THead>
           <TBody>
@@ -95,6 +96,23 @@ export const CreditCardTable = () => {
                     </Td>
                     <Td>{expiryDate}</Td>
                     <Td>{cvv}</Td>
+                    <Td>
+                      <Tooltip content="Delete credit card">
+                        <IconButton
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            // handlePopUpOpen("deleteSharedSecretConfirmation", {
+                            //   name: "delete",
+                            //   id: row.id
+                            // });
+                          }}
+                          variant="plain"
+                          ariaLabel="delete"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </IconButton>
+                      </Tooltip>
+                    </Td>
                   </Tr>
                 );
               })}

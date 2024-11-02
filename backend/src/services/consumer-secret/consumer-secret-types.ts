@@ -1,3 +1,5 @@
+import { TSharedSecretPermission } from "../secret-sharing/secret-sharing-types";
+
 type ConsumerSecretType = "web-login" | "credit-card" | "secure-note";
 
 export type TCreateConsumerSecretDTO = {
@@ -9,9 +11,13 @@ export type TCreateConsumerSecretDTO = {
   iv: string;
   tag: string;
   fields: string;
-};
+} & TSharedSecretPermission;
 
 export type TGetConsumerSecretsByOrgIdDTO = {
   orgId: string;
   userId: string;
-};
+} & TSharedSecretPermission;
+
+export type TDeleteConsumerSecretByIdDTO = {
+  id: string;
+} & TSharedSecretPermission;

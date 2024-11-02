@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { ConsumerSecretsSchema, ConsumerSecretType } from "@app/db/schemas";
-import { secretsLimit } from "@app/server/config/rateLimiter";
+import { secretsLimit, writeLimit } from "@app/server/config/rateLimiter";
 import { verifyAuth } from "@app/server/plugins/auth/verify-auth";
 import { AuthMode } from "@app/services/auth/auth-type";
 
@@ -42,7 +42,11 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
         tag,
         fields,
         userId: id,
-        orgId
+        orgId,
+        actor: req.permission.type,
+        actorId: req.permission.id,
+        actorAuthMethod: req.permission.authMethod,
+        actorOrgId: orgId
       });
 
       return {
@@ -71,10 +75,49 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
 
       const consumerSecrets = await server.services.consumerSecret.getConsumerSecretsByOrgId({
         userId: req.permission.id,
-        orgId
+        orgId,
+        actor: req.permission.type,
+        actorId: req.permission.id,
+        actorAuthMethod: req.permission.authMethod,
+        actorOrgId: req.permission.orgId
       });
 
       return consumerSecrets;
+    }
+  });
+
+  server.route({
+    method: "DELETE",
+    url: "/:consumerSecretId",
+    config: {
+      rateLimit: writeLimit
+    },
+    schema: {
+      params: z.object({
+        consumerSecretId: z.string()
+      }),
+      response: {
+        200: z.object({
+          id: z.string(),
+          orgId: z.string(),
+          type: z.string()
+        })
+      }
+    },
+    onRequest: verifyAuth([AuthMode.JWT]),
+    handler: async (req) => {
+      const { consumerSecretId } = req.params;
+
+      const deletedConsumerSecret = await req.server.services.consumerSecret.deleteConsumerSecretById({
+        actor: req.permission.type,
+        actorId: req.permission.id,
+        orgId: req.permission.orgId,
+        actorAuthMethod: req.permission.authMethod,
+        actorOrgId: req.permission.orgId,
+        id: consumerSecretId
+      });
+
+      return { id: deletedConsumerSecret.id, orgId: deletedConsumerSecret.orgId, type: deletedConsumerSecret.type };
     }
   });
 };

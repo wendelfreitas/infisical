@@ -12,6 +12,9 @@ export const ConsumerSecretsSchema = z.object({
   userId: z.string().uuid(),
   orgId: z.string().uuid(),
   type: z.string(),
+  key: z.string(),
+  iv: z.string(),
+  tag: z.string(),
   name: z.string().nullable().optional(),
   fields: z.string(),
   createdAt: z.date(),
@@ -21,3 +24,9 @@ export const ConsumerSecretsSchema = z.object({
 export type TConsumerSecrets = z.infer<typeof ConsumerSecretsSchema>;
 export type TConsumerSecretsInsert = Omit<z.input<typeof ConsumerSecretsSchema>, TImmutableDBKeys>;
 export type TConsumerSecretsUpdate = Partial<Omit<z.input<typeof ConsumerSecretsSchema>, TImmutableDBKeys>>;
+
+export enum ConsumerSecretType {
+  WebLogin = "web-login",
+  CreditCard = "credit-card",
+  SecureNote = "secure-note"
+}

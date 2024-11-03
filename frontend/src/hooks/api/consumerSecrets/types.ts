@@ -17,13 +17,13 @@ export type ConsumerSecret = {
   updatedAt: string;
 };
 
-export type ConsumerSecretSecretWebLogin = Omit<ConsumerSecret, "fields"> & {
+export type ConsumerSecretWebLogin = Omit<ConsumerSecret, "fields"> & {
   type: "web-login";
   username: string;
   password: string;
 };
 
-export type ConsumerSecretSecretSecureNote = Omit<ConsumerSecret, "fields"> & {
+export type ConsumerSecretSecureNote = Omit<ConsumerSecret, "fields"> & {
   type: "secure-note";
   content: string;
 };
@@ -44,3 +44,5 @@ export type ConsumerSecretDeleteResponse = {
 export type TDeleteConsumerSecretRequest = {
   consumerSecretId: string;
 };
+
+export type TUpdateConsumerSecretDTO = TCreateConsumerSecretDTO & { id: string };

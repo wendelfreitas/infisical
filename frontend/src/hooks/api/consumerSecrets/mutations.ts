@@ -8,7 +8,8 @@ import { apiRequest } from "@app/config/request";
 import {
   ConsumerSecretDeleteResponse,
   TCreateConsumerSecretDTO,
-  TDeleteConsumerSecretRequest
+  TDeleteConsumerSecretRequest,
+  TUpdateConsumerSecretDTO
 } from "./types";
 
 export const useCreateConsumerSecret = ({
@@ -41,6 +42,46 @@ export const useCreateConsumerSecret = ({
       };
 
       const { data } = await apiRequest.post<{ orgId: string }>("/api/v1/consumer-secrets", body);
+      return data;
+    },
+
+    ...options
+  });
+};
+
+export const useUpdateConsumerSecret = ({
+  options
+}: {
+  options?: Omit<MutationOptions<{ orgId: string }, {}, TUpdateConsumerSecretDTO>, "mutationFn">;
+} = {}) => {
+  return useMutation<{ orgId: string }, {}, TUpdateConsumerSecretDTO>({
+    mutationFn: async ({ id, type, name, ...rest }) => {
+      const dataToEncrypt = rest;
+
+      const key = crypto.randomBytes(16).toString("hex");
+
+      const {
+        iv,
+        tag,
+        ciphertext: fields
+      } = encryptSymmetric({
+        key,
+        plaintext: JSON.stringify(dataToEncrypt)
+      });
+
+      const body = {
+        type,
+        name,
+        key,
+        iv,
+        tag,
+        fields
+      };
+
+      const { data } = await apiRequest.put<{ orgId: string }>(
+        `/api/v1/consumer-secrets/${id}`,
+        body
+      );
       return data;
     },
 

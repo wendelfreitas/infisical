@@ -34,7 +34,7 @@ export const AddConsumerSecretModal = ({ type, popUp, handlePopUpToggle }: Props
     >
       <ModalContent
         title={title[type]}
-        subTitle="Once you share a secret, the share link is only accessible once."
+        subTitle="Manage your secrets securely, from website logins to corporate credit cards"
       >
         <ConsumerSecretForm
           type={type}

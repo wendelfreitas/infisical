@@ -45,14 +45,18 @@ export enum UserAgentType {
 
 export enum EventType {
   GET_SECRETS = "get-secrets",
+  GET_CONSUMER_SECRETS = "get-consumer-secrets",
   GET_SECRET = "get-secret",
   REVEAL_SECRET = "reveal-secret",
   CREATE_SECRET = "create-secret",
+  CREATE_CONSUMER_SECRET = "create-consumer-secret",
   CREATE_SECRETS = "create-secrets",
   UPDATE_SECRET = "update-secret",
+  UPDATE_CONSUMER_SECRET = "update-consumer-secret",
   UPDATE_SECRETS = "update-secrets",
   MOVE_SECRETS = "move-secrets",
   DELETE_SECRET = "delete-secret",
+  DELETE_CONSUMER_SECRET = "delete-consumer-secret",
   DELETE_SECRETS = "delete-secrets",
   GET_WORKSPACE_KEY = "get-workspace-key",
   AUTHORIZE_INTEGRATION = "authorize-integration",
@@ -1618,6 +1622,48 @@ interface UpdateExternalGroupOrgRoleMappingsEvent {
   };
 }
 
+interface GetConsumerSecretsEvent {
+  type: EventType.GET_CONSUMER_SECRETS;
+  metadata: {
+    numberOfSecrets: number;
+    userId: string;
+    orgId: string;
+  };
+}
+
+interface CreateConsumerSecretEvent {
+  type: EventType.CREATE_CONSUMER_SECRET;
+  metadata: {
+    id: string;
+    type: string;
+    name?: string;
+    userId: string;
+    orgId: string;
+  };
+}
+
+interface UpdateConsumerSecretEvent {
+  type: EventType.UPDATE_CONSUMER_SECRET;
+  metadata: {
+    id: string;
+    type: string;
+    name?: string;
+    userId: string;
+    orgId: string;
+  };
+}
+
+interface DeleteConsumerSecretEvent {
+  type: EventType.DELETE_CONSUMER_SECRET;
+  metadata: {
+    id: string;
+    type: string;
+    name?: string;
+    userId: string;
+    orgId: string;
+  };
+}
+
 export type Event =
   | GetSecretsEvent
   | GetSecretEvent
@@ -1766,4 +1812,8 @@ export type Event =
   | CmekEncryptEvent
   | CmekDecryptEvent
   | GetExternalGroupOrgRoleMappingsEvent
-  | UpdateExternalGroupOrgRoleMappingsEvent;
+  | UpdateExternalGroupOrgRoleMappingsEvent
+  | GetConsumerSecretsEvent
+  | CreateConsumerSecretEvent
+  | UpdateConsumerSecretEvent
+  | DeleteConsumerSecretEvent;

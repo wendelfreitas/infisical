@@ -340,5 +340,10 @@
   "admin": {
     "signup-title": "Admin Sign Up",
     "dashboard": "Admin Dashboard"
+  },
+  "user-secrets": {
+    "title": "User Secrets",
+    "og-title": "User Secrets",
+    "og-description": "Manage consumer secrets securely, from website logins to corporate credit cards."
   }
 }

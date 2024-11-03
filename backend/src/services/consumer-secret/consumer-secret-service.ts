@@ -5,7 +5,8 @@ import { TConsumerSecretDALFactory } from "./consumer-secret-dal";
 import {
   TCreateConsumerSecretDTO,
   TDeleteConsumerSecretByIdDTO,
-  TGetConsumerSecretsByOrgIdDTO
+  TGetConsumerSecretsByOrgIdDTO,
+  TUpdateConsumerSecretDTO
 } from "./consumer-secret-types";
 
 type TConsumerSecretServiceFactoryDep = {
@@ -68,6 +69,24 @@ export const consumerSecretServiceFactory = ({
     return secrets;
   };
 
+  const updateConsumerSecret = async ({
+    id,
+    orgId,
+    actor,
+    actorId,
+    actorAuthMethod,
+    actorOrgId,
+    ...consumerSecret
+  }: TUpdateConsumerSecretDTO) => {
+    const { permission } = await permissionService.getOrgPermission(actor, actorId, orgId, actorAuthMethod, actorOrgId);
+
+    if (!permission) throw new ForbiddenRequestError({ name: "User does not belong to the specified organization" });
+
+    const updated = await consumerSecretDAL.updateById(id, consumerSecret);
+
+    return updated;
+  };
+
   const deleteConsumerSecretById = async ({
     id,
     orgId,
@@ -85,5 +104,5 @@ export const consumerSecretServiceFactory = ({
     return excluded;
   };
 
-  return { createConsumerSecret, getConsumerSecretsByOrgId, deleteConsumerSecretById };
+  return { createConsumerSecret, updateConsumerSecret, getConsumerSecretsByOrgId, deleteConsumerSecretById };
 };

@@ -13,6 +13,8 @@ export type TCreateConsumerSecretDTO = {
   fields: string;
 } & TSharedSecretPermission;
 
+export type TUpdateConsumerSecretDTO = Omit<TCreateConsumerSecretDTO, "userId"> & { id: string };
+
 export type TGetConsumerSecretsByOrgIdDTO = {
   orgId: string;
   userId: string;

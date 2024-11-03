@@ -89,6 +89,51 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
   });
 
   server.route({
+    method: "PUT",
+    url: "/:consumerSecretId",
+    config: {
+      rateLimit: writeLimit
+    },
+    schema: {
+      body: z.object({
+        type: z.nativeEnum(ConsumerSecretType),
+        name: z.string().trim(),
+        key: z.string().trim(),
+        iv: z.string().trim(),
+        tag: z.string().trim(),
+        fields: z.string().trim()
+      }),
+      params: z.object({
+        consumerSecretId: z.string()
+      }),
+      response: {
+        200: z.object({
+          id: z.string(),
+          orgId: z.string(),
+          type: z.string()
+        })
+      }
+    },
+    onRequest: verifyAuth([AuthMode.JWT]),
+    handler: async (req) => {
+      const { consumerSecretId } = req.params;
+      const consumerSecret = req.body;
+
+      const updatedConsumerSecret = await req.server.services.consumerSecret.updateConsumerSecret({
+        actor: req.permission.type,
+        actorId: req.permission.id,
+        orgId: req.permission.orgId,
+        actorAuthMethod: req.permission.authMethod,
+        actorOrgId: req.permission.orgId,
+        id: consumerSecretId,
+        ...consumerSecret
+      });
+
+      return { id: updatedConsumerSecret.id, orgId: updatedConsumerSecret.orgId, type: updatedConsumerSecret.type };
+    }
+  });
+
+  server.route({
     method: "DELETE",
     url: "/:consumerSecretId",
     config: {

@@ -196,7 +196,9 @@
             "documentation/platform/admin-panel/org-admin-console"
           ]
         },
-        "documentation/platform/secret-sharing"
+        "documentation/platform/secret-sharing",
+        "documentation/platform/consumer-secret"
+        
       ]
     },
     {

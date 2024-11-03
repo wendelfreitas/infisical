@@ -4,6 +4,11 @@ export enum PostHogEventTypes {
   SecretCreated = "secrets added",
   SecretUpdated = "secrets modified",
   SecretDeleted = "secrets deleted",
+  ConsumerSecretPush = "consumer secrets pushed",
+  ConsumerSecretPulled = "consumer secrets pulled",
+  ConsumerSecretCreated = "consumer secrets added",
+  ConsumerSecretUpdated = "consumer secrets modified",
+  ConsumerSecretDeleted = "consumer secrets deleted",
   AdminInit = "admin initialization",
   UserSignedUp = "User Signed Up",
   SecretRotated = "secrets rotated",
@@ -15,6 +20,22 @@ export enum PostHogEventTypes {
   UserOrgInvitation = "User Org Invitation",
   TelemetryInstanceStats = "Self Hosted Instance Stats"
 }
+
+export type TConsumerSecretEvent = {
+  event:
+    | PostHogEventTypes.ConsumerSecretPush
+    | PostHogEventTypes.ConsumerSecretPulled
+    | PostHogEventTypes.ConsumerSecretCreated
+    | PostHogEventTypes.ConsumerSecretUpdated
+    | PostHogEventTypes.ConsumerSecretDeleted;
+  properties: {
+    numberOfSecrets: number;
+    orgId: string;
+    userId: string;
+    channel?: string;
+    userAgent?: string;
+  };
+};
 
 export type TSecretModifiedEvent = {
   event:
@@ -130,4 +151,5 @@ export type TPostHogEvent = { distinctId: string } & (
   | TIntegrationCreatedEvent
   | TProjectCreateEvent
   | TTelemetryInstanceStatsEvent
+  | TConsumerSecretEvent
 );

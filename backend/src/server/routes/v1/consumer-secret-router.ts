@@ -1,9 +1,13 @@
 import { z } from "zod";
 
 import { ConsumerSecretsSchema, ConsumerSecretType } from "@app/db/schemas";
+import { EventType } from "@app/ee/services/audit-log/audit-log-types";
 import { secretsLimit, writeLimit } from "@app/server/config/rateLimiter";
+import { getTelemetryDistinctId } from "@app/server/lib/telemetry";
+import { getUserAgentType } from "@app/server/plugins/audit-log";
 import { verifyAuth } from "@app/server/plugins/auth/verify-auth";
 import { AuthMode } from "@app/services/auth/auth-type";
+import { PostHogEventTypes } from "@app/services/telemetry/telemetry-types";
 
 export const registerConsumerSecretRouter = async (server: FastifyZodProvider) => {
   server.route({
@@ -50,6 +54,37 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
         actorOrgId: orgId
       });
 
+      const promises = [
+        server.services.auditLog.createAuditLog({
+          ...req.auditLogInfo,
+          orgId: secret.orgId,
+          event: {
+            type: EventType.CREATE_CONSUMER_SECRET,
+            metadata: {
+              id: secret.id,
+              type: secret.type,
+              name: secret.name || "",
+              orgId: secret.orgId,
+              userId: secret.userId
+            }
+          }
+        }),
+
+        server.services.telemetry.sendPostHogEvents({
+          event: PostHogEventTypes.ConsumerSecretCreated,
+          distinctId: getTelemetryDistinctId(req),
+          properties: {
+            numberOfSecrets: 1,
+            orgId,
+            userId: req.permission.id,
+            channel: getUserAgentType(req.headers["user-agent"]),
+            ...req.auditLogInfo
+          }
+        })
+      ];
+
+      await Promise.all(promises);
+
       return {
         id: secret.id,
         orgId
@@ -83,6 +118,35 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
         actorAuthMethod: req.permission.authMethod,
         actorOrgId: req.permission.orgId
       });
+
+      const promises = [
+        server.services.auditLog.createAuditLog({
+          ...req.auditLogInfo,
+          orgId,
+          event: {
+            type: EventType.GET_CONSUMER_SECRETS,
+            metadata: {
+              numberOfSecrets: consumerSecrets.length,
+              orgId,
+              userId: req.permission.id
+            }
+          }
+        }),
+
+        server.services.telemetry.sendPostHogEvents({
+          event: PostHogEventTypes.ConsumerSecretPulled,
+          distinctId: getTelemetryDistinctId(req),
+          properties: {
+            numberOfSecrets: consumerSecrets.length,
+            orgId,
+            userId: req.permission.id,
+            channel: getUserAgentType(req.headers["user-agent"]),
+            ...req.auditLogInfo
+          }
+        })
+      ];
+
+      await Promise.all(promises);
 
       return consumerSecrets;
     }
@@ -129,6 +193,37 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
         ...consumerSecret
       });
 
+      const promises = [
+        server.services.auditLog.createAuditLog({
+          ...req.auditLogInfo,
+          orgId: req.permission.orgId,
+          event: {
+            type: EventType.UPDATE_CONSUMER_SECRET,
+            metadata: {
+              id: updatedConsumerSecret.id,
+              orgId: updatedConsumerSecret.orgId,
+              type: updatedConsumerSecret.type,
+              name: updatedConsumerSecret.name || "",
+              userId: req.permission.id
+            }
+          }
+        }),
+
+        server.services.telemetry.sendPostHogEvents({
+          event: PostHogEventTypes.ConsumerSecretUpdated,
+          distinctId: getTelemetryDistinctId(req),
+          properties: {
+            numberOfSecrets: 1,
+            orgId: req.permission.orgId,
+            userId: req.permission.id,
+            channel: getUserAgentType(req.headers["user-agent"]),
+            ...req.auditLogInfo
+          }
+        })
+      ];
+
+      await Promise.all(promises);
+
       return { id: updatedConsumerSecret.id, orgId: updatedConsumerSecret.orgId, type: updatedConsumerSecret.type };
     }
   });
@@ -163,6 +258,37 @@ export const registerConsumerSecretRouter = async (server: FastifyZodProvider) =
         actorOrgId: req.permission.orgId,
         id: consumerSecretId
       });
+
+      const promises = [
+        server.services.auditLog.createAuditLog({
+          ...req.auditLogInfo,
+          orgId: req.permission.orgId,
+          event: {
+            type: EventType.UPDATE_CONSUMER_SECRET,
+            metadata: {
+              id: deletedConsumerSecret.id,
+              orgId: deletedConsumerSecret.orgId,
+              type: deletedConsumerSecret.type,
+              name: deletedConsumerSecret.name || "",
+              userId: req.permission.id
+            }
+          }
+        }),
+
+        server.services.telemetry.sendPostHogEvents({
+          event: PostHogEventTypes.ConsumerSecretDeleted,
+          distinctId: getTelemetryDistinctId(req),
+          properties: {
+            numberOfSecrets: 1,
+            orgId: req.permission.orgId,
+            userId: req.permission.id,
+            channel: getUserAgentType(req.headers["user-agent"]),
+            ...req.auditLogInfo
+          }
+        })
+      ];
+
+      await Promise.all(promises);
 
       return { id: deletedConsumerSecret.id, orgId: deletedConsumerSecret.orgId, type: deletedConsumerSecret.type };
     }

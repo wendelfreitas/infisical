@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { faCopy, faMagnifyingGlass, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faMagnifyingGlass, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -25,7 +25,7 @@ import { handleCopySecretToClipboard } from "@app/views/UserSecretsPage/utils/he
 
 type CreditCardTableProps = {
   handlePopUpOpen: (
-    popUpName: keyof UsePopUpState<["removeConsumerSecret"]>,
+    popUpName: keyof UsePopUpState<["removeConsumerSecret", "editConsumerSecret"]>,
     data?: {
       id: string;
       type: ConsumerSecretType;
@@ -107,7 +107,20 @@ export const CreditCardTable = ({ handlePopUpOpen }: CreditCardTableProps) => {
                     </Td>
                     <Td>{expiryDate}</Td>
                     <Td>{cvv}</Td>
-                    <Td>
+                    <Td className="flex">
+                      <Tooltip content="Edit credentials">
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePopUpOpen("editConsumerSecret", secret);
+                          }}
+                          variant="plain"
+                          ariaLabel="edit"
+                          className="mr-2.5"
+                        >
+                          <FontAwesomeIcon icon={faPencil} />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip content="Delete credit card">
                         <IconButton
                           onClick={async (e) => {

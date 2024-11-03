@@ -13,7 +13,8 @@ import { SecureNoteTable } from "./SecureNoteTable";
 export const SecureNoteSection = () => {
   const { popUp, handlePopUpOpen, handlePopUpToggle } = usePopUp([
     "createConsumerSecret",
-    "removeConsumerSecret"
+    "removeConsumerSecret",
+    "editConsumerSecret"
   ] as const);
 
   const handleAddSecureNote = () => {

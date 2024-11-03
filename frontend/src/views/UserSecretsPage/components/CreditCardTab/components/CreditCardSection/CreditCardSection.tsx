@@ -13,7 +13,8 @@ import { CreditCardTable } from "./CreditCardTable";
 export const CreditCardSection = () => {
   const { popUp, handlePopUpOpen, handlePopUpToggle } = usePopUp([
     "createConsumerSecret",
-    "removeConsumerSecret"
+    "removeConsumerSecret",
+    "editConsumerSecret"
   ] as const);
 
   const { mutateAsync: deleteConsumerSecret } = useDeleteConsumerSecretById();

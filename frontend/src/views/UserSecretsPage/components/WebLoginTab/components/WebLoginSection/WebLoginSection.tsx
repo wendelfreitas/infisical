@@ -13,7 +13,8 @@ import { WebLoginTable } from "./WebLoginTable";
 export const WebLoginSection = () => {
   const { popUp, handlePopUpOpen, handlePopUpToggle } = usePopUp([
     "createConsumerSecret",
-    "removeConsumerSecret"
+    "removeConsumerSecret",
+    "editConsumerSecret"
   ] as const);
 
   const { mutateAsync: deleteConsumerSecret } = useDeleteConsumerSecretById();

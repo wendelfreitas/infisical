@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { faCopy, faMagnifyingGlass, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faMagnifyingGlass, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -19,13 +19,13 @@ import {
 import { consumerSecretsTypes, ConsumerSecretType } from "@app/const";
 import { useOrganization } from "@app/context";
 import { useGetConsumerSecretsByOrgId } from "@app/hooks/api/consumerSecrets/queries";
-import { ConsumerSecretSecretSecureNote } from "@app/hooks/api/consumerSecrets/types";
+import { ConsumerSecretSecureNote } from "@app/hooks/api/consumerSecrets/types";
 import { UsePopUpState } from "@app/hooks/usePopUp";
 import { handleCopySecretToClipboard } from "@app/views/UserSecretsPage/utils/helpers/copy-secret-to-clipboard";
 
 type SecureNoteTableProps = {
   handlePopUpOpen: (
-    popUpName: keyof UsePopUpState<["removeConsumerSecret"]>,
+    popUpName: keyof UsePopUpState<["removeConsumerSecret", "editConsumerSecret"]>,
     data?: {
       id: string;
       type: ConsumerSecretType;
@@ -44,7 +44,7 @@ export const SecureNoteTable = ({ handlePopUpOpen }: SecureNoteTableProps) => {
     orgId
   });
 
-  const secrets = (data || []) as unknown as ConsumerSecretSecretSecureNote[];
+  const secrets = (data || []) as unknown as ConsumerSecretSecureNote[];
 
   const isLoading = isConsumerSecretsLoading;
 
@@ -98,6 +98,20 @@ export const SecureNoteTable = ({ handlePopUpOpen }: SecureNoteTableProps) => {
                           <FontAwesomeIcon icon={faCopy} />
                         </IconButton>
                       </Tooltip>
+                      <Tooltip content="Edit credentials">
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePopUpOpen("editConsumerSecret", secret);
+                          }}
+                          variant="plain"
+                          ariaLabel="edit"
+                          className="mr-2.5"
+                        >
+                          <FontAwesomeIcon icon={faPencil} />
+                        </IconButton>
+                      </Tooltip>
+
                       <Tooltip content="Delete note">
                         <IconButton
                           onClick={async (e) => {

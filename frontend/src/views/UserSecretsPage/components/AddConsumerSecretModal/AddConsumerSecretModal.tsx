@@ -1,14 +1,15 @@
 import { Modal, ModalContent } from "@app/components/v2";
 import { consumerSecretsTypes, ConsumerSecretType } from "@app/const";
+import { ConsumerSecret } from "@app/hooks/api/consumerSecrets/types";
 import { UsePopUpState } from "@app/hooks/usePopUp";
 
 import { ConsumerSecretForm } from "../ConsumerSecretForm/ConsumerSecretForm";
 
 type Props = {
   type: ConsumerSecretType;
-  popUp: UsePopUpState<["createConsumerSecret"]>;
+  popUp: UsePopUpState<["createConsumerSecret", "editConsumerSecret"]>;
   handlePopUpToggle: (
-    popUpName: keyof UsePopUpState<["createConsumerSecret"]>,
+    popUpName: keyof UsePopUpState<["createConsumerSecret", "editConsumerSecret"]>,
     state?: boolean
   ) => void;
 };
@@ -22,9 +23,13 @@ export const AddConsumerSecretModal = ({ type, popUp, handlePopUpToggle }: Props
 
   return (
     <Modal
-      isOpen={popUp?.createConsumerSecret?.isOpen}
+      isOpen={popUp?.createConsumerSecret?.isOpen || popUp?.editConsumerSecret?.isOpen}
       onOpenChange={(isOpen) => {
         handlePopUpToggle("createConsumerSecret", isOpen);
+
+        if (popUp?.editConsumerSecret?.isOpen) {
+          handlePopUpToggle("editConsumerSecret", isOpen);
+        }
       }}
     >
       <ModalContent
@@ -35,7 +40,7 @@ export const AddConsumerSecretModal = ({ type, popUp, handlePopUpToggle }: Props
           type={type}
           popUp={popUp}
           handlePopUpToggle={handlePopUpToggle}
-          //   value={(popUp.createConsumerSecret.data as { value?: string })?.value}
+          data={popUp?.editConsumerSecret?.data as ConsumerSecret}
         />
       </ModalContent>
     </Modal>

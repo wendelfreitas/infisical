@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -5,7 +6,16 @@ import { z } from "zod";
 import { createNotification } from "@app/components/notifications";
 import { Button, FormControl, Input } from "@app/components/v2";
 import { consumerSecretsTypes, ConsumerSecretType } from "@app/const";
-import { useCreateConsumerSecret } from "@app/hooks/api/consumerSecrets/mutations";
+import {
+  useCreateConsumerSecret,
+  useUpdateConsumerSecret
+} from "@app/hooks/api/consumerSecrets/mutations";
+import {
+  ConsumerSecret,
+  ConsumerSecretSecretCreditCard,
+  ConsumerSecretSecureNote,
+  ConsumerSecretWebLogin
+} from "@app/hooks/api/consumerSecrets/types";
 import { UsePopUpState } from "@app/hooks/usePopUp";
 import { queryClient } from "@app/reactQuery";
 
@@ -55,11 +65,12 @@ const secureNoteSchema = z.object({
 
 type Props = {
   type: ConsumerSecretType;
-  popUp: UsePopUpState<["createConsumerSecret"]>;
+  popUp: UsePopUpState<["createConsumerSecret", "editConsumerSecret"]>;
   handlePopUpToggle: (
-    popUpName: keyof UsePopUpState<["createConsumerSecret"]>,
+    popUpName: keyof UsePopUpState<["createConsumerSecret", "editConsumerSecret"]>,
     state?: boolean
   ) => void;
+  data?: ConsumerSecret;
 };
 
 const getSchema = (type: string) => {
@@ -78,32 +89,7 @@ const getSchema = (type: string) => {
   }
 };
 
-export const ConsumerSecretForm = ({ type, handlePopUpToggle }: Props) => {
-  const { mutateAsync: createConsumerSecret } = useCreateConsumerSecret({
-    options: {
-      onSuccess({ orgId }) {
-        queryClient.refetchQueries(["consumer-secrets", orgId, type]);
-        handlePopUpToggle("createConsumerSecret", false);
-      }
-    }
-  });
-
-  const schema = getSchema(type);
-
-  const {
-    control,
-    handleSubmit,
-
-    formState: { isSubmitting, errors }
-  } = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      type
-    }
-  });
-
-  console.log(errors);
-
+export const ConsumerSecretForm = ({ type, handlePopUpToggle, data: editable }: Props) => {
   const notification: {
     [key: string]: {
       title: string;
@@ -111,32 +97,120 @@ export const ConsumerSecretForm = ({ type, handlePopUpToggle }: Props) => {
     };
   } = {
     [consumerSecretsTypes.webLogin]: {
-      title: "Web Credentials created successfully",
-      error: "Failed to create Web Credential"
+      title: `Web Credentials ${editable ? "edited" : "created"} successfully`,
+      error: `Failed to ${editable ? "edit" : "create"} Web Credential`
     },
     [consumerSecretsTypes.creditCard]: {
-      title: "Credit Card created successfully",
-      error: "Failed to create Credit Card"
+      title: `Credit Card ${editable ? "edited" : "created"} successfully`,
+      error: `Failed to ${editable ? "edit" : "create"} Credit Card`
     },
     [consumerSecretsTypes.secureNote]: {
-      title: "Secure Note created successfully",
-      error: "Failed to create Secure Note"
+      title: `Secure Note ${editable ? "edited" : "created"} successfully`,
+      error: `Failed to ${editable ? "edit" : "create"} Secure Note`
     }
   };
 
-  const onFormSubmit = async (data: z.infer<typeof schema>) => {
-    try {
-      await createConsumerSecret(data);
-      createNotification({
-        text: notification[type].title,
-        type: "success"
-      });
-    } catch (error) {
-      createNotification({
-        text: notification[type].error,
-        type: "error"
-      });
+  const { mutateAsync: createConsumerSecret } = useCreateConsumerSecret({
+    options: {
+      onError() {
+        createNotification({
+          text: notification[type].error,
+          type: "error"
+        });
+      },
+      onSuccess({ orgId }) {
+        createNotification({
+          text: notification[type].title,
+          type: "success"
+        });
+
+        queryClient.refetchQueries(["consumer-secrets", orgId, type]);
+        handlePopUpToggle("createConsumerSecret", false);
+      }
     }
+  });
+
+  const { mutateAsync: editConsumerSecret } = useUpdateConsumerSecret({
+    options: {
+      onError() {
+        createNotification({
+          text: notification[type].error,
+          type: "error"
+        });
+      },
+      onSuccess({ orgId }) {
+        createNotification({
+          text: notification[type].title,
+          type: "success"
+        });
+
+        queryClient.refetchQueries(["consumer-secrets", orgId, type]);
+        handlePopUpToggle("editConsumerSecret", false);
+      }
+    }
+  });
+
+  const schema = getSchema(type);
+
+  console.log(editable);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting }
+  } = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      type
+    }
+  });
+
+  const getEditablesValues = () => {
+    if (type === consumerSecretsTypes.secureNote) {
+      const secret = editable as unknown as ConsumerSecretSecureNote;
+
+      return {
+        type: consumerSecretsTypes.secureNote,
+        name: secret.name,
+        content: secret.content
+      };
+    }
+
+    if (type === consumerSecretsTypes.creditCard) {
+      const secret = editable as unknown as ConsumerSecretSecretCreditCard;
+
+      return {
+        type: consumerSecretsTypes.creditCard,
+        name: secret.name,
+        cardNumber: Number(secret.cardNumber),
+        expiryDate: secret.expiryDate,
+        cvv: Number(secret.cvv)
+      };
+    }
+
+    const secret = editable as unknown as ConsumerSecretWebLogin;
+
+    return {
+      type: consumerSecretsTypes.webLogin,
+      name: secret.name,
+      username: secret.username,
+      password: secret.password
+    };
+  };
+
+  useEffect(() => {
+    if (editable) {
+      reset(getEditablesValues());
+    }
+  }, [editable]);
+
+  const onFormSubmit = async (data: z.infer<typeof schema>) => {
+    if (editable) {
+      return editConsumerSecret({ id: editable.id, ...data });
+    }
+
+    return createConsumerSecret(data);
   };
 
   const dynamicFields: {
@@ -148,7 +222,12 @@ export const ConsumerSecretForm = ({ type, handlePopUpToggle }: Props) => {
           control={control}
           name="username"
           render={({ field, fieldState: { error } }) => (
-            <FormControl label="Username" isError={Boolean(error)} errorText={error?.message}>
+            <FormControl
+              label="Username"
+              isError={Boolean(error)}
+              isRequired
+              errorText={error?.message}
+            >
               <Input {...field} placeholder="Username" type="text" />
             </FormControl>
           )}
@@ -265,7 +344,7 @@ export const ConsumerSecretForm = ({ type, handlePopUpToggle }: Props) => {
         isLoading={isSubmitting}
         isDisabled={isSubmitting}
       >
-        Create Consumer Secret
+        {editable ? "Edit" : "Create"} Consumer Secret
       </Button>
     </form>
   );
